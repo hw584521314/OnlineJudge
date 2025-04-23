@@ -151,7 +151,10 @@ class TestCaseAPI(CSRFExemptAPIView, TestCaseZipProcessor):
             file = form.cleaned_data["file"]
         else:
             return self.error("Upload failed")
-        zip_file = f"/tmp/{rand_str()}.zip"
+        temp_path=os.path.join(os.getcwd(), "tmp")
+        if not os.path.exists(temp_path):
+            os.makedirs(temp_path)
+        zip_file = os.path.join(temp_path, f"{rand_str()}.zip")        
         with open(zip_file, "wb") as f:
             for chunk in file:
                 f.write(chunk)

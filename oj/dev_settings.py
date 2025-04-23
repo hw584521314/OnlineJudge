@@ -8,7 +8,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'HOST': get_env('POSTGRES_HOST', '127.0.0.1'),
-        'PORT': get_env('POSTGRES_PORT', '5435'),
+        'PORT': get_env('POSTGRES_PORT', '5432'),
         'NAME': get_env('POSTGRES_DB', 'onlinejudge'),
         'USER': get_env('POSTGRES_USER', 'onlinejudge'),
         'PASSWORD': get_env('POSTGRES_PASSWORD', 'onlinejudge')
@@ -17,7 +17,7 @@ DATABASES = {
 
 REDIS_CONF = {
     'host': get_env('REDIS_HOST', '127.0.0.1'),
-    'port': get_env('REDIS_PORT', '6380')
+    'port': get_env('REDIS_PORT', '6379')
 }
 
 
