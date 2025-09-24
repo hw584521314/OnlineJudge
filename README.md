@@ -80,6 +80,12 @@ Modern browsers(chrome, firefox) and Internet Explorer 10+.
 + Thanks to everyone that contributes to this project.
 + Special thanks to [heb1c](https://github.com/hebicheng), who has given us a lot of suggestions.
 
+## Technical Support
+Due to the developer's limited personal time, no free technical support is provided. Please resolve any setup or usage issues by referring to the source code.
+
+If you require technical support, please join QQ group: 1062579260 or email: 1846853156@qq.com
+
+
 ## License
 
 [MIT](http://opensource.org/licenses/MIT)

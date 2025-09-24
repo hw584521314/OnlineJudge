@@ -20,14 +20,6 @@ class BaseExamSerializer(serializers.ModelSerializer):
             "enable",
         )
 
-class ExamSerializer(BaseExamSerializer):
-    id = serializers.IntegerField()
-    create_user=UserSerializer(required=False)
-    class Meta(BaseExamSerializer.Meta):
-        fields = BaseExamSerializer.Meta.fields + (
-            "id",
-            "create_user",
-        )
 
 
 class CreateExamSerializer(BaseExamSerializer):
@@ -62,6 +54,28 @@ class ExamDetailSerializer(serializers.ModelSerializer):
             for p in obj.get_problems_config()
         ]
     
+class ExamSerializer(BaseExamSerializer):
+    id = serializers.IntegerField()
+    create_user=UserSerializer(required=False)
+    exam_details=serializers.SerializerMethodField()
+    
+    def get_exam_details(self, obj):
+        #遍历其exam_details属性
+        return [
+            {
+                "exam_detail": ExamDetailSerializer(each["exam_detail"]).data,
+                "category": each["category"]
+            }
+            for each in obj.exam_details
+        ]
+    class Meta(BaseExamSerializer.Meta):
+        fields = BaseExamSerializer.Meta.fields + (
+            "id",
+            "create_user",
+            "exam_details"
+        )
+
+
 class StudentSerializer(serializers.ModelSerializer):
     create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")  # 格式化输出
     class Meta:

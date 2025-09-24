@@ -8,7 +8,7 @@ from ..models import Exam, ExamDetail, StudentProfile, ExamResult,ExamToExamDeta
 from account.models import User,AdminType, UserProfile
 from account.decorators import admin_role_required, login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from ..serializers import ExamSerializer,CreateExamSerializer,ExamDetailSerializer, StudentSerializer,ExamResultSerializer
+from ..serializers import ExamSerializer,CreateExamSerializer,ExamDetailSerializer, StudentSerializer,ExamResultSerializer,StudentExamResultListSerializer
 from rest_framework.response import Response
 from django.db import IntegrityError 
 from django.conf import settings
@@ -100,7 +100,7 @@ class ExamList(APIView):
         
         data=ExamSerializer(exam_list, many=True).data
         
-        return self.success(data=data)
+        return self.success({"data":data,"total":paginator.count})
         
         
 '''
@@ -818,3 +818,31 @@ class StudentImport(APIView):
         user.save()
         UserProfile.objects.create(user=user)
         return user
+
+
+        
+class StudentExamResultHistoryAPI(APIView):
+    '''
+    获取一个学生的所有历史考试数据
+    '''
+    @login_required
+    def get(self, request):
+        page_index = request.GET.get("page",1)
+        page_size = request.GET.get("limit",10)
+        student_id = request.GET.get("student_id")
+        if not student_id:
+            return self.error("student_id is needed")
+        
+        exam_results = ExamResult.objects.filter(student_id=student_id).select_related("exam").order_by("-create_time")
+        paginator = Paginator(exam_results, page_size)  # 每页显示 10 条记录
+        try:
+            exam_results = paginator.page(page_index)
+        except PageNotAnInteger:
+            # 如果页码不是一个整数，则返回第一页的结果
+            exam_results = paginator.page(1)
+        except EmptyPage:
+            # 如果页码超出了最大页数，则返回最后一页的结果
+            exam_results = paginator.page(paginator.num_pages)
+        
+        data=StudentExamResultListSerializer(exam_results, many=True).data
+        return self.success({"data":data,"total":paginator.count})

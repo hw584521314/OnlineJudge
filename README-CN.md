@@ -20,6 +20,7 @@
 + 多语言支持：`C`, `C++`, `Java`, `Python2`, `Python3`，题目可以选择使用的语言
 + Markdown & MathJax 支持
 + 比赛用户IP限制 (CIDR ranges)
++ 添加了考试功能，可以进行组卷，学生信息导入，考试成绩导出等实用功能
 
 主要模块均已开源:
 
@@ -79,6 +80,11 @@ Modern browsers(chrome, firefox) 和 Internet Explorer 10+.
 + [heb1c](https://github.com/hebicheng) 同学为我们提供了很多意见和建议
 
 如果您觉得这个项目还不错，就star一下吧 ：)
+
+## 技术支持
+由于开发者个人时间有限，不提供免费的技术支持，请自行根据源码解决搭建和使用过程中的问题
+如果需要技术支持，请加QQ群： 1062579260 或发邮件至：184685315@qq.com
+
 
 ## 许可
 
