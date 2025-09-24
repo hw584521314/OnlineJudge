@@ -103,7 +103,7 @@ class OptionKeys:
     judge_server_token = "judge_server_token"
     throttling = "throttling"
     languages = "languages"
-
+    running_mode="running_mode"
 
 class OptionDefaultValue:
     website_base_url = "http://127.0.0.1"
@@ -111,11 +111,13 @@ class OptionDefaultValue:
     website_name_shortcut = "oj"
     website_footer = "Online Judge Footer"
     allow_register = True
-    submission_list_show_all = True
+    submission_list_show_all = False
     smtp_config = {}
     judge_server_token = default_token
+    running_mode ="exam"  # exam or practice
     throttling = {"ip": {"capacity": 100, "fill_rate": 0.1, "default_capacity": 50},
-                  "user": {"capacity": 20, "fill_rate": 0.03, "default_capacity": 10}}
+                  # 每秒填充令牌数(这里是每30秒1个)
+                  "user": {"capacity": 20, "fill_rate": 1/30, "default_capacity": 10}}
     languages = languages
 
 
@@ -212,6 +214,13 @@ class _SysOptionsMeta(type):
     @website_footer.setter
     def website_footer(cls, value):
         cls._set_option(OptionKeys.website_footer, value)
+
+    @my_property
+    def running_mode(cls):
+        return cls._get_option(OptionKeys.running_mode)
+    @running_mode.setter
+    def running_mode(cls,value):
+        cls._set_option(OptionKeys.running_mode,value)
 
     @my_property
     def allow_register(cls):

@@ -22,6 +22,7 @@ class SubmissionAPI(APIView):
         auth_method = getattr(request, "auth_method", "")
         if auth_method == "api_key":
             return
+        print(SysOptions.throttling["user"])
         user_bucket = TokenBucket(key=str(request.user.id),
                                   redis_conn=cache, **SysOptions.throttling["user"])
         can_consume, wait = user_bucket.consume()
@@ -64,20 +65,28 @@ class SubmissionAPI(APIView):
         error = self.throttling(request)
         if error:
             return self.error(error)
+        if data.get("exam_id"):
+            #检查exam是否处于status==1的考试装填
+            from exam.models import Exam
+            if Exam.objects.get(id=data["exam_id"]).status != 1 and not request.user.is_admin_role():
+                return self.error("考试未开始或已结束")            
 
         try:
-            problem = Problem.objects.get(id=data["problem_id"], contest_id=data.get("contest_id"), visible=True)
+            problem = Problem.objects.get(id=data["problem_id"], contest_id=data.get("contest_id"))
         except Problem.DoesNotExist:
             return self.error("Problem not exist")
         if data["language"] not in problem.languages:
             return self.error(f"{data['language']} is now allowed in the problem")
+        
         submission = Submission.objects.create(user_id=request.user.id,
                                                username=request.user.username,
                                                language=data["language"],
                                                code=data["code"],
                                                problem_id=problem.id,
                                                ip=request.session["ip"],
-                                               contest_id=data.get("contest_id"))
+                                               contest_id=data.get("contest_id"),
+                                               exam_id=data.get("exam_id"),
+                                               exam_detail_id=data.get("exam_detail_id"))
         # use this for debug
         # JudgeDispatcher(submission.id, problem.id).judge()
         judge_task.send(submission.id, problem.id)
@@ -131,12 +140,16 @@ class SubmissionListAPI(APIView):
             return self.error("Limit is needed")
         if request.GET.get("contest_id"):
             return self.error("Parameter error")
-
+        #如果是考试模式，则不返回任何内容
+        if SysOptions.running_mode=="exam" and not request.user.is_admin_role():
+            return self.error("考试期间不允许查看非考试提交记录")
+        #如果只看自己的提交：,user_id=request.user.id
         submissions = Submission.objects.filter(contest_id__isnull=True).select_related("problem__created_by")
         problem_id = request.GET.get("problem_id")
-        myself = request.GET.get("myself")
+        
         result = request.GET.get("result")
         username = request.GET.get("username")
+        myself = request.GET.get("myself")
         if problem_id:
             try:
                 problem = Problem.objects.get(_id=problem_id, contest_id__isnull=True, visible=True)
@@ -145,8 +158,7 @@ class SubmissionListAPI(APIView):
             submissions = submissions.filter(problem=problem)
         if (myself and myself == "1") or not SysOptions.submission_list_show_all:
             submissions = submissions.filter(user_id=request.user.id)
-        elif username:
-            submissions = submissions.filter(username__icontains=username)
+        
         if result:
             submissions = submissions.filter(result=result)
         data = self.paginate_data(request, submissions)

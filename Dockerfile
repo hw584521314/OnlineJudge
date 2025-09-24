@@ -31,5 +31,6 @@ RUN chmod -R u=rwX,go=rX ./ && chmod +x ./deploy/entrypoint.sh
 
 HEALTHCHECK --interval=5s  CMD [ "/usr/local/bin/python3", "/app/deploy/health_check.py" ]
 EXPOSE 8000
-ENTRYPOINT [ "/bin/sh", "/app/deploy/entrypoint.sh" ]
+#这里不能写成["/bin/sh"， "/app/deploy/entrypoint.sh" ] 会导致权限错误
+ENTRYPOINT [ "/app/deploy/entrypoint.sh" ]
 #ENTRYPOINT ["sh", "-c", "while true; do echo 'Running in shell'; sleep 1; done"]

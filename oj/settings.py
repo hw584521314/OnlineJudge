@@ -51,6 +51,7 @@ LOCAL_APPS = [
     'submission',
     'options',
     'judge',
+    'exam'
 ]
 
 INSTALLED_APPS = VENDOR_APPS + LOCAL_APPS
@@ -108,9 +109,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-cn'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -125,6 +126,8 @@ STATIC_URL = '/public/'
 
 AUTH_USER_MODEL = 'account.User'
 
+
+
 TEST_CASE_DIR = os.path.join(DATA_DIR, "test_case")
 LOG_PATH = os.path.join(DATA_DIR, "log")
 
@@ -134,7 +137,12 @@ AVATAR_UPLOAD_DIR = f"{DATA_DIR}{AVATAR_URI_PREFIX}"
 UPLOAD_PREFIX = "/public/upload"
 UPLOAD_DIR = f"{DATA_DIR}{UPLOAD_PREFIX}"
 
+
+
+
+
 STATICFILES_DIRS = [os.path.join(DATA_DIR, "public")]
+# 文件上传大小限制（可选）
 
 
 LOGGING_HANDLERS = ['console', 'sentry'] if production_env else ['console']
@@ -187,7 +195,12 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-    )
+    ),
+     'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',  # 确保包含MultiPartParser
+    ]
 }
 
 REDIS_URL = "redis://%s:%s" % (REDIS_CONF["host"], REDIS_CONF["port"])

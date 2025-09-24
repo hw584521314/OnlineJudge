@@ -58,12 +58,15 @@ class TokenBucket:
         :return: result: bool, wait_time: float
         """
         # print("capacity ", self.fill(time.time()))
+        #print(f"容量： {self._last_capacity}, 需要： {num}")
         if self._last_capacity >= num:
             self._last_capacity -= num
             return True, 0
         else:
+            
             now = time.time()
             cur_num = self._try_to_fill(now)
+            #print(f"填令牌容量： {cur_num}")
             if cur_num >= num:
                 self._last_capacity = cur_num - num
                 self._last_timestamp = now

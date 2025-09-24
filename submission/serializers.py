@@ -8,6 +8,8 @@ class CreateSubmissionSerializer(serializers.Serializer):
     language = LanguageNameChoiceField()
     code = serializers.CharField(max_length=1024 * 1024)
     contest_id = serializers.IntegerField(required=False)
+    exam_id = serializers.IntegerField(required=False)
+    exam_detail_id = serializers.IntegerField(required=False)
     captcha = serializers.CharField(required=False)
 
 
@@ -35,7 +37,7 @@ class SubmissionSafeModelSerializer(serializers.ModelSerializer):
 class SubmissionListSerializer(serializers.ModelSerializer):
     problem = serializers.SlugRelatedField(read_only=True, slug_field="_id")
     show_link = serializers.SerializerMethodField()
-
+    problem_id= serializers.IntegerField()
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)

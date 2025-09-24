@@ -6,7 +6,7 @@ from django.http import HttpResponse, QueryDict
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
-
+from rest_framework.parsers import MultiPartParser
 logger = logging.getLogger("")
 
 
@@ -22,7 +22,14 @@ class ContentType(object):
     json_response = "application/json;charset=UTF-8"
     url_encoded_request = "application/x-www-form-urlencoded"
     binary_response = "application/octet-stream"
+    multipart_request = "multipart/form-data"
 
+class MultiPartParser(object):
+    content_type = ContentType.multipart_request
+
+    @staticmethod
+    def parse(body):
+        return body
 
 class JSONParser(object):
     content_type = ContentType.json_request
@@ -59,7 +66,7 @@ class APIView(View):
      - self.response 返回一个django HttpResponse, 具体在self.response_class中实现
      - parse请求的类需要定义在request_parser中, 目前只支持json和urlencoded的类型, 用来解析请求的数据
     """
-    request_parsers = (JSONParser, URLEncodedParser)
+    request_parsers = (JSONParser, URLEncodedParser,MultiPartParser)
     response_class = JSONResponse
 
     def _get_request_data(self, request):

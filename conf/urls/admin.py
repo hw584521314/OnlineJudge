@@ -1,10 +1,11 @@
 from django.conf.urls import url
 
-from ..views import SMTPAPI, JudgeServerAPI, WebsiteConfigAPI, TestCasePruneAPI, SMTPTestAPI
+from ..views import SMTPAPI, JudgeServerAPI, WebsiteConfigAPI, TestCasePruneAPI, SMTPTestAPI,ExamRunningMode
 from ..views import ReleaseNotesAPI, DashboardInfoAPI
 
 urlpatterns = [
     url(r"^smtp/?$", SMTPAPI.as_view(), name="smtp_admin_api"),
+    url(r"running_mode/?$", ExamRunningMode.as_view(), name="running_mode_api"),
     url(r"^smtp_test/?$", SMTPTestAPI.as_view(), name="smtp_test_api"),
     url(r"^website/?$", WebsiteConfigAPI.as_view(), name="website_config_api"),
     url(r"^judge_server/?$", JudgeServerAPI.as_view(), name="judge_server_api"),

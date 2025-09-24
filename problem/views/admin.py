@@ -151,10 +151,11 @@ class TestCaseAPI(CSRFExemptAPIView, TestCaseZipProcessor):
             file = form.cleaned_data["file"]
         else:
             return self.error("Upload failed")
-        temp_path=os.path.join(os.getcwd(), "tmp")
-        if not os.path.exists(temp_path):
-            os.makedirs(temp_path)
-        zip_file = os.path.join(temp_path, f"{rand_str()}.zip")        
+        #检查平台，如果是windows，则当前目录下的临时文件，否则使用/tmp
+        if os.name == 'nt':
+            zip_file = f"./tmp/{rand_str()}.zip" 
+        else:            
+            zip_file = f"/tmp/{rand_str()}.zip"        
         with open(zip_file, "wb") as f:
             for chunk in file:
                 f.write(chunk)
@@ -239,6 +240,8 @@ class ProblemAPI(ProblemBase):
                 return self.success(ProblemAdminSerializer(problem).data)
             except Problem.DoesNotExist:
                 return self.error("Problem does not exist")
+        #否则就是获取列表
+        
 
         problems = Problem.objects.filter(contest_id__isnull=True).order_by("-create_time")
         if rule_type:
@@ -252,6 +255,8 @@ class ProblemAPI(ProblemBase):
             problems = problems.filter(Q(title__icontains=keyword) | Q(_id__icontains=keyword))
         if not user.can_mgmt_all_problem():
             problems = problems.filter(created_by=user)
+        #使用分页器进行分页返回
+        #为了使用该方法，需要传入offset和limit参数
         return self.success(self.paginate_data(request, problems, ProblemAdminSerializer))
 
     @problem_permission_required
@@ -538,7 +543,11 @@ class ExportProblemAPI(APIView):
                 ensure_created_by(problem.contest, request.user)
             else:
                 ensure_created_by(problem, request.user)
-        path = f"/tmp/{rand_str()}.zip"
+        if os.name == 'nt':
+            path = f"./tmp/{rand_str()}.zip" 
+        else:            
+            path = f"/tmp/{rand_str()}.zip"
+        #path = f"/tmp/{rand_str()}.zip"
         with zipfile.ZipFile(path, "w") as zip_file:
             for index, problem in enumerate(problems):
                 self.process_one_problem(zip_file=zip_file, user=request.user, problem=problem, index=index + 1)
@@ -556,7 +565,11 @@ class ImportProblemAPI(CSRFExemptAPIView, TestCaseZipProcessor):
         form = UploadProblemForm(request.POST, request.FILES)
         if form.is_valid():
             file = form.cleaned_data["file"]
-            tmp_file = f"/tmp/{rand_str()}.zip"
+            if os.name == 'nt':
+                tmp_file = f"./tmp/{rand_str()}.zip" 
+            else:            
+                tmp_file = f"/tmp/{rand_str()}.zip"
+            #tmp_file = f"/tmp/{rand_str()}.zip"
             with open(tmp_file, "wb") as f:
                 for chunk in file:
                     f.write(chunk)

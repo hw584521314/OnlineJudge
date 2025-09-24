@@ -15,6 +15,10 @@ class ContestStatus:
     CONTEST_ENDED = "-1"
     CONTEST_UNDERWAY = "0"
 
+class ExamStatus:
+    EXAM_NOT_START = 0
+    EXAM_ENDED = 2
+    EXAM_UNDERWAY = 1
 
 class ContestRuleType(Choices):
     ACM = "ACM"

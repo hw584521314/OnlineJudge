@@ -5,7 +5,7 @@ from account.models import User
 from contest.models import Contest
 from utils.models import RichTextField
 from utils.constants import Choices
-
+from exam.models import Exam
 
 class ProblemTag(models.Model):
     name = models.TextField()
@@ -38,6 +38,7 @@ class Problem(models.Model):
     # display ID
     _id = models.TextField(db_index=True)
     contest = models.ForeignKey(Contest, null=True, on_delete=models.CASCADE)
+    
     # for contest problem
     is_public = models.BooleanField(default=False)
     title = models.TextField()

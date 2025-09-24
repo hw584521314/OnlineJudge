@@ -13,7 +13,7 @@ from django.conf import settings
 from django.utils import timezone
 from requests.exceptions import RequestException
 
-from account.decorators import super_admin_required
+from account.decorators import login_required, super_admin_required
 from account.models import User
 from contest.models import Contest
 from judge.dispatcher import process_pending_task
@@ -29,6 +29,19 @@ from .serializers import (CreateEditWebsiteConfigSerializer,
                           JudgeServerHeartbeatSerializer,
                           JudgeServerSerializer, TestSMTPConfigSerializer, EditJudgeServerSerializer)
 
+class ExamRunningMode(APIView):
+    
+    def get(self, request):
+        return self.success({"running_mode": SysOptions.running_mode})
+
+    @super_admin_required
+    def post(self, request):
+        mode = request.data.get("running_mode")
+        if mode not in ["exam", "practice"]:
+            return self.error("Invalid running mode")
+        SysOptions.running_mode = mode
+        
+        return self.success()
 
 class SMTPAPI(APIView):
     @super_admin_required
@@ -134,6 +147,7 @@ class JudgeServerHeartbeatAPI(CSRFExemptAPIView):
     def post(self, request):
         data = request.data
         client_token = request.META.get("HTTP_X_JUDGE_SERVER_TOKEN")
+        #print(SysOptions.judge_server_token)
         if hashlib.sha256(SysOptions.judge_server_token.encode("utf-8")).hexdigest() != client_token:
             return self.error("Invalid token")
 
@@ -216,7 +230,7 @@ class ReleaseNotesAPI(APIView):
             releases = resp.json()
         except (RequestException, ValueError):
             return self.success()
-        with open("docs/data.json", "r") as f:
+        with open("docs/data.json", "r",encoding="utf-8") as f:
             local_version = json.load(f)["update"][0]["version"]
         releases["local_version"] = local_version
         return self.success(releases)

@@ -1,8 +1,11 @@
+from django.utils import timezone
 import hashlib
 import json
 import logging
+import sys
 from urllib.parse import urljoin
 
+from django.db.models import IntegerField
 import requests
 from django.db import transaction, IntegrityError
 from django.db.models import F
@@ -10,12 +13,16 @@ from django.db.models import F
 from account.models import User
 from conf.models import JudgeServer
 from contest.models import ContestRuleType, ACMContestRank, OIContestRank, ContestStatus
+from exam.models import Exam, ExamDetail, ExamResult, StudentProfile
 from options.options import SysOptions
 from problem.models import Problem, ProblemRuleType
 from problem.utils import parse_problem_template
 from submission.models import JudgeStatus, Submission
 from utils.cache import cache
 from utils.constants import CacheKey
+from django.db.models import Max, Value, Case, When
+from django.db.models.functions import Coalesce,Cast
+from django.db.models.fields.json import KeyTextTransform
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +100,10 @@ class JudgeDispatcher(DispatcherBase):
         super().__init__()
         self.submission = Submission.objects.get(id=submission_id)
         self.contest_id = self.submission.contest_id
+        self.user_id=self.submission.user_id
+        self.exam_id = self.submission.exam_id
+        self.exam_detail_id = self.submission.exam_detail_id
+
         self.last_result = self.submission.result if self.submission.info else None
 
         if self.contest_id:
@@ -151,7 +162,7 @@ class JudgeDispatcher(DispatcherBase):
             "spj_src": self.problem.spj_code,
             "io_mode": self.problem.io_mode
         }
-
+        
         with ChooseJudgeServer() as server:
             if not server:
                 data = {"submission_id": self.submission.id, "problem_id": self.problem.id}
@@ -182,7 +193,7 @@ class JudgeDispatcher(DispatcherBase):
             else:
                 self.submission.result = JudgeStatus.PARTIALLY_ACCEPTED
         self.submission.save()
-
+        
         if self.contest_id:
             if self.contest.status != ContestStatus.CONTEST_UNDERWAY or \
                     User.objects.get(id=self.submission.user_id).is_contest_admin(self.contest):
@@ -197,10 +208,81 @@ class JudgeDispatcher(DispatcherBase):
                 self.update_problem_status_rejudge()
             else:
                 self.update_problem_status()
-
+        #如果有exam_id，则更新ExamResult
+        
+        #logger.error("%d:%d:%d" % (self.exam_id,self.exam_detail_id,self.user_id))
+        if self.exam_id and self.exam_detail_id and self.user_id:
+            self.calculate_update_exam_score()
         # 至此判题结束，尝试处理任务队列中剩余的任务
         process_pending_task()
+        
+    def calculate_update_exam_score(self):
+        '''
+        根据考试exam_detail_id获取题目的分值配置，通过exam_id和user_id获取用户提交过的相同题目的最高分
+        结合每道题目的分值配置和提交的题目分值，计算出用户总分
+        '''
+        exam_id,exam_detail_id,user_id=self.exam_id,self.exam_detail_id,self.user_id
 
+        exam_detail=ExamDetail.objects.filter(id=exam_detail_id).first()
+        problems_config=exam_detail.get_problems_config()
+        submissions = Submission.objects.filter(
+            exam_id=exam_id, 
+            user_id=user_id
+        ).values('problem_id').annotate(
+            max_score=Max(Coalesce(
+                Cast(KeyTextTransform('score', 'statistic_info'), IntegerField()),                
+                Value(0),
+                output_field=IntegerField()))
+        ).order_by()  # 清除所有排序，因为模型定义中定义了order_by 默认会被纳入分组字段
+        #查看submissions生成的SQL语句，便于调试
+        #logger.error(submissions.query)
+        #打印submissions，用于调试
+        # for i in submissions:
+        #     logger.error(i)
+        # 获取每个题目的最高分，并转换为以problem_id为键的字典
+        submissions_dict = {item['problem_id']: item for item in submissions}
+        problems_score,total_score=self._calculate_score(problems_config,submissions_dict)
+        student = StudentProfile.objects.get(user_id=user_id)
+        exam_result=ExamResult.objects.filter(exam_id=exam_id,student=student).first()
+        now_time=timezone.localtime(timezone.now())
+        if not exam_result:
+            ExamResult.objects.create(exam_id=exam_id,student=student, total_score=total_score,answers=problems_score,update_time=now_time)
+        else:
+            #使用problems_score和total_score更新exam_result对象
+            exam_result.total_score = total_score
+            exam_result.answers = problems_score
+            exam_result.update_time = now_time
+            exam_result.save()
+        #logger.error(problems_score)
+        return
+    def _calculate_score(self,problems_config,submissions):
+        #遍历problems_config，对每一题，通过submissions获取该题最高分，并计算该题的得分
+        total_score=0
+        problems_score=[]
+        for item in problems_config:
+            
+            problem=item['problem']
+            config_score=float(item['score'])
+            each={"problem_id":problem.id,"name":problem.title,"problem_score":problem.total_score,"exam_config_score":config_score}
+            sub=submissions.get(problem.id)
+            if sub is None:
+                #这道题学生还未做，0分
+                each['max_score']=0
+                each['sub_score']=0
+                problems_score.append(each)
+                continue
+            
+            max_score = sub['max_score']  # 从字典中获取 max_score
+            
+            # 计算该题得分
+            t_score = max_score / problem.total_score * config_score
+            #保留小数点后两位
+            t_score = round(t_score, 2)
+            each['sub_score']=t_score
+            each['max_score']=max_score
+            total_score+=t_score
+            problems_score.append(each)
+        return problems_score,total_score
     def update_problem_status_rejudge(self):
         result = str(self.submission.result)
         problem_id = str(self.problem.id)

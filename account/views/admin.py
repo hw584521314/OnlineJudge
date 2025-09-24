@@ -144,7 +144,11 @@ class GenerateUserAPI(APIView):
             return self.error("Invalid Parameter, file_id is required")
         if not re.match(r"^[a-zA-Z0-9]+$", file_id):
             return self.error("Illegal file_id")
-        file_path = f"/tmp/{file_id}.xlsx"
+        if os.name == 'nt':
+            file_path = f"./tmp/{file_id}.xlsx" 
+        else:            
+            file_path = f"/tmp/{file_id}.xlsx"  
+        #file_path = f"/tmp/{file_id}.xlsx"
         if not os.path.isfile(file_path):
             return self.error("File does not exist")
         with open(file_path, "rb") as f:
@@ -169,7 +173,11 @@ class GenerateUserAPI(APIView):
             return self.error("Start number must be lower than end number")
 
         file_id = rand_str(8)
-        filename = f"/tmp/{file_id}.xlsx"
+        if os.name == 'nt':
+            filename = f"./tmp/{file_id}.xlsx" 
+        else:            
+            filename = f"/tmp/{file_id}.xlsx"
+        #filename = f"/tmp/{file_id}.xlsx"
         workbook = xlsxwriter.Workbook(filename)
         worksheet = workbook.add_worksheet()
         worksheet.set_column("A:B", 20)
