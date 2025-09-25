@@ -57,7 +57,7 @@ class StudentExamDetail(APIView):
     def get(self, request):
         exam_id = request.GET.get('id')
         user = request.user
-        student=user.studentprofile
+        student=StudentProfile.objects.get(user=user.id);#  user.studentprofile
         # 根据学号的奇偶性决定从exam_details的catagory中取哪套试卷
         if student.sid[-1] in ['1','3','5','7','9']:
             
