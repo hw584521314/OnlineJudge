@@ -1,5 +1,13 @@
 # OnlineJudge 2.0
 
+
+## Technical Support
+Due to the developer's limited personal time, no free technical support is provided. Please resolve any setup or usage issues by referring to the source code.
+
+If you require technical support, please join QQ group: 1062579260 or email: 1846853156@qq.com
+if you think this secondary development is helpful, please buy author a cup of coffee, thanks!
+<img src="./个人收款码_QR.jpg">
+
 [![Python](https://img.shields.io/badge/python-3.8.0-blue.svg?style=flat-square)](https://www.python.org/downloads/release/python-362/)
 [![Django](https://img.shields.io/badge/django-3.2.9-blue.svg?style=flat-square)](https://www.djangoproject.com/)
 [![Django Rest Framework](https://img.shields.io/badge/django_rest_framework-3.12.0-blue.svg?style=flat-square)](http://www.django-rest-framework.org/)
@@ -80,10 +88,6 @@ Modern browsers(chrome, firefox) and Internet Explorer 10+.
 + Thanks to everyone that contributes to this project.
 + Special thanks to [heb1c](https://github.com/hebicheng), who has given us a lot of suggestions.
 
-## Technical Support
-Due to the developer's limited personal time, no free technical support is provided. Please resolve any setup or usage issues by referring to the source code.
-
-If you require technical support, please join QQ group: 1062579260 or email: 1846853156@qq.com
 
 
 ## License

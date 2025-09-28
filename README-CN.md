@@ -1,5 +1,12 @@
 # OnlineJudge 2.0
 
+## 技术支持
+由于开发者个人时间有限，不提供免费的技术支持，请自行根据源码解决搭建和使用过程中的问题
+如果需要技术支持，请加QQ群： 1062579260 或发邮件至：184685315@qq.com
+如果觉得该二次开发有帮助，请作者喝杯咖啡吧
+<img src="./个人收款码_QR.jpg">
+
+
 [![Python](https://img.shields.io/badge/python-3.8.0-blue.svg?style=flat-square)](https://www.python.org/downloads/release/python-362/)
 [![Django](https://img.shields.io/badge/django-3.2.9-blue.svg?style=flat-square)](https://www.djangoproject.com/)
 [![Django Rest Framework](https://img.shields.io/badge/django_rest_framework-3.12.0-blue.svg?style=flat-square)](http://www.django-rest-framework.org/)
@@ -81,9 +88,7 @@ Modern browsers(chrome, firefox) 和 Internet Explorer 10+.
 
 如果您觉得这个项目还不错，就star一下吧 ：)
 
-## 技术支持
-由于开发者个人时间有限，不提供免费的技术支持，请自行根据源码解决搭建和使用过程中的问题
-如果需要技术支持，请加QQ群： 1062579260 或发邮件至：184685315@qq.com
+
 
 
 ## 许可
