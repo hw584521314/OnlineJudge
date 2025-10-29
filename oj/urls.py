@@ -17,4 +17,6 @@ urlpatterns = [
 
     url(r"^api/admin/", include("exam.urls.admin")),
     url(r"^api/", include("exam.urls.oj")),
+
+    url(r"^api/", include("keyboard_typing.urls.oj")),
 ]
