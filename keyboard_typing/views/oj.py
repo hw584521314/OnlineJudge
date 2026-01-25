@@ -13,10 +13,20 @@ class TypingHistorySerializer(serializers.ModelSerializer):
 class TypingHistoryView(APIView):
     @login_required
     def get(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            return self.success()
+        #从url参数获取username
+        #print(request.GET)
+        username = request.GET.get("username")
         #返回用户的打字记录数据
-        uid=request.user.id
-        
-        data=TypingHistory.objects.filter(user__id=uid).order_by("create_time").all()
+        if username:
+            data=TypingHistory.objects.filter(user__username=username).order_by("create_time").all()
+        else:
+            uid=request.user.id
+            data=TypingHistory.objects.filter(user__id=uid).order_by("create_time").all()
+        #uid=request.user.id
+        print(username,data)
         data=TypingHistorySerializer(data, many=True).data if data else []
         return self.success(data)
 
@@ -30,10 +40,20 @@ class TypingSerializer(serializers.ModelSerializer):
 class Typing(APIView):
     @login_required
     def get(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            return self.success()
+        
+        username = request.GET.get("username")
+        if username:
         #返回用户的打字最好数据
-        uid=request.user.id
-        data=TypingHistory.objects.filter(user__id=uid).order_by("-accuracy","-tpm").first()
-        print(uid,data)
+        #
+            data=TypingHistory.objects.filter(user__username=username).order_by("-accuracy","-tpm").first()
+        else:
+            uid=request.user.id
+            data=TypingHistory.objects.filter(user__id=uid).order_by("-accuracy","-tpm").first()
+        
+        #print(username,data)
         data=TypingSerializer(data).data if data else {"accuracy":0.0,"tpm":0}
         return self.success(data)
     
